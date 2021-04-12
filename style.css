@@ -20,4 +20,52 @@ html {
 body {
 	margin: 0px; 
 	background-color: var(--background);
+	
+	outline: solid; 
+}
+
+header {
+
+}
+
+main {
+	height: 100vh; 
+	display: flex;
+	flex-direction: column; 
+	justify-content: center;
+	align-items: center;
+}
+
+#meta {
+	width: 500px; 
+	font-size: 5rem;
+	text-align: center;
+}
+#gameboard {
+	width: 500px;
+	height: 500px;
+	display: grid; 
+	grid-template: 1fr 1fr 1fr / 1fr 1fr 1fr;
+	background-color: var(--board-color);
+}
+#gameboard .board_block {
+	border: solid 2px var(--board-mesh) ;
+	text-align: center;
+	/* line-height: calc(500px/3); /* to center the text */ 
+	
+}
+#gameboard .board_block:hover {
+	cursor: pointer; 
+	background-color: rgba(30, 54, 76, 0.5);
+}
+#gameboard .board_block p {
+	font-size: 7rem;
+	margin: 0px;
+	position: relative; 
+	top: 50%; 
+	transform: translateY(-50%);
+}
+
+footer {
+
 }
