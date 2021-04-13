@@ -21,48 +21,69 @@ const gameplay = (() => {
                 let {fetchState, modifyState}  = gameBoard;           
                 let currentState = fetchState(); 
                 const MIN_TURNS = 5; // minimum No. of turns for someone to win
-                const MAX_TURNS = 9; // maximum No. of turns possible
-                const markers = ['x', 'o']; 
+                const markers = ['X', 'O']; 
 
                 let gameOver = 0; // == 1 if game is over
 
                 let turnCount = 0; 
                 const getTurn = function(){ // get turn - 'x' or 'o'  
-                    return markers[turnCount % 2]; // starts with 'x'
+                    return markers[turnCount % 2]; 
                 }; 
-                const checkNextTurn = function() {
-                    if(turnCount < MAX_TURNS){
-                        return markers[++turnCount % 2];
-                    }
-                        
-                    else 
-                        return '.'; 
-                    
+                const getNextTurn = function() {
+                    return markers[(++turnCount) % 2];
                 }
                 const checkState = function(){ // game over or draw
-                    if(turnCount >= MIN_TURNS) {
-
-                        if(turnCount === MAX_TURNS) { 
-                            // draw 
-                            return 0; 
+                    if(turnCount >= MIN_TURNS) { // minimum turns for the first player to reach a win..
+                        for(let i = 0; i < 3; i++) {
+                            if(currentState[i][0]){ // is not empty
+                                if(currentState[i][0] === currentState[i][1] && currentState[i][1] === currentState[i][2]) // win detected over a row
+                                {
+                                    return getTurn(); // return winner
+                                }
+                            }
+                            
+                            if(currentState[0][i]){
+                                if(currentState[0][i] === currentState[1][i] && currentState[1][i] === currentState[2][i]) // win detected over a column
+                                {
+                                    return getTurn(); // return winner
+                                }
+                            }
                         }
-                    }
-                    
-                     
+
+                        if(currentState[1][1]){
+                            if ((currentState[0][0] === currentState[1][1] && currentState[1][1] === currentState[2][2]) // win detected over forward diagonal
+                            || (currentState[0][2] === currentState[1][1] && currentState[1][1] === currentState[2][0])) // win detected over reverse diagonal
+                            {
+                                return getTurn(); // return winner
+                            }
+                        }
+                        
+
+                        
+                        if(currentState.flat().every(block => block)) {  // all blocks are filled i.e. game is draw
+                            return 'draw'; 
+                        }
+
+                       
+                    }  
+                    return 0; // game is not over yet
                 }
 
                 const resetState = function(){
                     for(let i = 0; i < 3; i++) {
                         for(let j = 0; j < 3; j++) {
                             modifyState(i, j, ''); 
+                            
                         }
                     }
                     turnCount = 0; 
+                    displayController.displayBoard();   
+                    displayController.displayNextTurn(gameplay.checkState());
                 }
 
                 return {
                     getTurn, 
-                    checkNextTurn,
+                    getNextTurn,
                     checkState, 
                     resetState,
                 };
@@ -83,8 +104,21 @@ const displayController = (() => {
                             }
 
                             
-                            function displayNextTurn() {
-                                document.querySelector('#meta').innerText = gameplay.checkNextTurn(); 
+                            function displayNextTurn(result) {
+                                
+                                if(!result) { // if no result is reached yet
+                                    document.querySelector('#meta span').innerText = `Next Turn: ${gameplay.getNextTurn()}`;     
+                                }
+                                else { // game over
+
+                                    if(result === 'draw') {
+                                        document.querySelector('#meta span').innerText = `It's a Draw !`;
+                                    }
+                                    else {
+                                        document.querySelector('#meta span').innerText = `Winner: ${result} !`;
+                                    }
+                                }
+                                
                             }
 
                             return {
@@ -100,20 +134,22 @@ function player(name, marker){
 
 function init() {
     let gridBlocks = Array.from(boardDOM.children); 
-    gridBlocks.forEach(block => block.addEventListener('click', () => {getInput(block);}));
+    gridBlocks.forEach(block => block.addEventListener('click', ()=> {getInput(block); }));
     displayController.displayNextTurn(); 
+
+    document.querySelector('#meta button').addEventListener('click', () => {gameplay.resetState()});
 }
+
 
 function getInput(block) {
     let row = block.getAttribute('data-loc')[0]; 
     let col = block.getAttribute('data-loc')[1];
-    
-    if(!gameBoard.fetchState()[row][col]){ // that location is empty
+    if(!gameBoard.fetchState()[row][col] && !Boolean(gameplay.checkState())){ // that location is empty and checkState function returns 0 (incase of a win before board fills up)
         gameBoard.modifyState(row, 
                               col, 
                               gameplay.getTurn());
         displayController.displayBoard();   
-        displayController.displayNextTurn();
+        displayController.displayNextTurn(gameplay.checkState());
     }
     
 }
