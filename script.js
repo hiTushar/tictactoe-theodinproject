@@ -9,21 +9,30 @@ const gameBoard = (function(){
     const modifyState = function(i, j, marker) {
             state[i][j] = marker; 
     }
+    const resetState = function(){
+        for(let i = 0; i < 3; i++) {
+            for(let j = 0; j < 3; j++) {
+                modifyState(i, j, ''); 
+                
+            }
+        }
+        displayController.displayBoard();   
+        displayController.displayNextTurn(gameplay.checkState());
+    }
     return {
         fetchState,  
         modifyState, 
+        resetState
     }
     
   })();
 
 /* has game logic */
 const gameplay = (() => { 
-                let {fetchState, modifyState}  = gameBoard;           
+                let {fetchState}  = gameBoard;           
                 let currentState = fetchState(); 
                 const MIN_TURNS = 5; // minimum No. of turns for someone to win
-                const markers = ['X', 'O']; 
-
-                let gameOver = 0; // == 1 if game is over
+                const markers = ['O', 'X']; 
 
                 let turnCount = 0; 
                 const getTurn = function(){ // get turn - 'x' or 'o'  
@@ -70,15 +79,8 @@ const gameplay = (() => {
                 }
 
                 const resetState = function(){
-                    for(let i = 0; i < 3; i++) {
-                        for(let j = 0; j < 3; j++) {
-                            modifyState(i, j, ''); 
-                            
-                        }
-                    }
                     turnCount = 0; 
-                    displayController.displayBoard();   
-                    displayController.displayNextTurn(gameplay.checkState());
+                    displayController.displayNextTurn(0); 
                 }
 
                 return {
@@ -135,9 +137,9 @@ function player(name, marker){
 function init() {
     let gridBlocks = Array.from(boardDOM.children); 
     gridBlocks.forEach(block => block.addEventListener('click', ()=> {getInput(block); }));
-    displayController.displayNextTurn(); 
+    displayController.displayNextTurn(0); 
 
-    document.querySelector('#meta button').addEventListener('click', () => {gameplay.resetState()});
+    document.querySelector('#meta button').addEventListener('click', () => {gameBoard.resetState(); gameplay.resetState()});
 }
 
 
